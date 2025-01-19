@@ -58,7 +58,9 @@ limitations under the License.
 #include "xla/stream_executor/cuda/cuda_stream.h"
 #include "xla/stream_executor/cuda/cuda_timer.h"
 #include "xla/stream_executor/cuda/cuda_version_parser.h"
+#if CUDA_VERSION >= 12000
 #include "xla/stream_executor/cuda/tma_util.h"
+#endif
 #include "xla/stream_executor/device_description.h"
 #include "xla/stream_executor/device_memory.h"
 #include "xla/stream_executor/dnn.h"
@@ -1338,6 +1340,7 @@ absl::StatusOr<const CudaKernel*> CudaExecutor::GetCudaKernel(
   return static_cast<const CudaKernel*>(*it);
 }
 
+#if CUDA_VERSION >= 12000
 absl::StatusOr<DeviceMemoryBase> CudaExecutor::CreateTensorMap(
     TmaDescriptor tma_desc, void* global_address) {
   TF_ASSIGN_OR_RETURN(CUtensorMapDataType data_type,
@@ -1368,6 +1371,7 @@ absl::StatusOr<DeviceMemoryBase> CudaExecutor::CreateTensorMap(
       SynchronousMemcpy(&device_tensor_map, &tensor_map, sizeof(tensor_map)));
   return device_tensor_map;
 }
+#endif
 
 }  // namespace gpu
 }  // namespace stream_executor

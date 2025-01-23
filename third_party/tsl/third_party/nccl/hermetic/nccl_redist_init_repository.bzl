@@ -46,7 +46,19 @@ def _use_downloaded_nccl_wheel(repository_ctx):
         return
 
     # Download archive only when GPU config is used.
-    arch = OS_ARCH_DICT[repository_ctx.os.arch]
+    custom_arch = get_env_var(repository_ctx, "CUSTOM_PLATFORM_ARCHITECTURE")
+    if custom_arch:
+        if custom_arch in OS_ARCH_DICT.keys():
+            arch = OS_ARCH_DICT[custom_arch]
+        else:
+            fail(
+                "Unsupported architecture: {arch}, use one of {supported}".format(
+                    arch = custom_arch,
+                    supported = OS_ARCH_DICT.keys(),
+                ),
+            )
+    else:
+        arch = OS_ARCH_DICT[repository_ctx.os.arch]
     dict_key = "{cuda_version}-{arch}".format(
         cuda_version = cuda_version,
         arch = arch,
@@ -116,7 +128,12 @@ cuda_nccl_repo = repository_rule(
         "build_templates": attr.label_list(mandatory = True),
         "strip_prefix": attr.string(),
     },
-    environ = ["HERMETIC_CUDA_VERSION", "TF_CUDA_VERSION", "LOCAL_NCCL_PATH"],
+    environ = [
+        "HERMETIC_CUDA_VERSION",
+        "TF_CUDA_VERSION",
+        "LOCAL_NCCL_PATH",
+        "CUSTOM_PLATFORM_ARCHITECTURE",
+    ],
 )
 
 def nccl_redist_init_repository(

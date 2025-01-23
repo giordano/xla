@@ -297,7 +297,19 @@ def _download_redistribution(repository_ctx, arch_key, path_prefix):
     repository_ctx.delete(file_name)
 
 def _get_platform_architecture(repository_ctx):
-    host_arch = repository_ctx.os.arch
+    custom_arch = get_env_var(repository_ctx, "CUSTOM_PLATFORM_ARCHITECTURE")
+    if custom_arch:
+        if custom_arch in OS_ARCH_DICT.keys():
+            host_arch = custom_arch
+        else:
+            fail(
+                "Unsupported architecture: {arch}, use one of {supported}".format(
+                    arch = custom_arch,
+                    supported = OS_ARCH_DICT.keys(),
+                ),
+            )
+    else:
+        host_arch = repository_ctx.os.arch
 
     if host_arch == "aarch64":
         uname_result = repository_ctx.execute(["uname", "-a"]).stdout
@@ -379,6 +391,7 @@ cuda_repo = repository_rule(
         "HERMETIC_CUDA_VERSION",
         "TF_CUDA_VERSION",
         "LOCAL_CUDA_PATH",
+        "CUSTOM_PLATFORM_ARCHITECTURE",
     ],
 )
 
@@ -464,6 +477,7 @@ cudnn_repo = repository_rule(
         "HERMETIC_CUDA_VERSION",
         "TF_CUDA_VERSION",
         "LOCAL_CUDNN_PATH",
+        "CUSTOM_PLATFORM_ARCHITECTURE",
     ],
 )
 

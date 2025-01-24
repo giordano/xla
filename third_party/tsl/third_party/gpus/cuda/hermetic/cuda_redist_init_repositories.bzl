@@ -298,7 +298,7 @@ def _download_redistribution(repository_ctx, arch_key, path_prefix):
 
 def _get_platform_architecture(repository_ctx):
     custom_arch = get_env_var(repository_ctx, "CUSTOM_PLATFORM_ARCHITECTURE")
-    if custom_arch:
+    if custom_arch and repository_ctx.name != "cuda_nvcc":
         if custom_arch in OS_ARCH_DICT.keys():
             host_arch = custom_arch
         else:
